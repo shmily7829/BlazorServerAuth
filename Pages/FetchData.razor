@@ -1,5 +1,5 @@
 ﻿@page "/fetchdata"
-
+@attribute [Authorize(Roles ="Administrator")]
 <PageTitle>Weather forecast</PageTitle>
 
 @using BlazorServerAuthenticationAndAuthorzation.Data

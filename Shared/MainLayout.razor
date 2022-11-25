@@ -1,4 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using BlazorServerAuthenticationAndAuthorzation.Authentication
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navSvc
+
 
 <PageTitle>BlazorServerAuthenticationAndAuthorzation</PageTitle>
 
@@ -10,10 +14,28 @@
     <main>
         <div class="top-row px-4">
             <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+            <AuthorizeView>
+                <Authorized>
+                    <a @onclick="Logout" href="javascript:void(0)">登出</a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login">登入</a>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
-
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
+
+@code {
+    async Task Logout()
+    {
+        var customAuthProvider = (CustomAuthenticationStateProvider)authStateProvider;
+        //清除登入狀態
+        await customAuthProvider.UpdateAuthenticationState(null);
+        navSvc.NavigateTo("/", true);
+
+    }
+}

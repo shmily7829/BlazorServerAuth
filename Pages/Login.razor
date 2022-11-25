@@ -1,0 +1,57 @@
+﻿@page "/login"
+@using BlazorServerAuthenticationAndAuthorzation.Authentication
+@inject UserAccountService accSvc
+@inject IJSRuntime jsTool
+@inject AuthenticationStateProvider authProvider
+@inject NavigationManager navSvc
+
+<div class="row">
+    <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
+        <div class="mb-3 text-center">
+            <h3 class="mb-3" />
+        </div>
+        <div class="mb-3">
+            <label>User Name</label>
+            <input @bind="model.UserName" class="form-control" placeholder="帳號" />
+        </div>
+        <div class="mb-3">
+            <label>Password</label>
+            <input @bind="model.Password" class="form-control" placeholder="密碼" />
+        </div>
+        <div class="mb-3 d-grid gap-2">
+            <button @onclick="Authenticate" class="btn - btn-primary">登入</button>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    class Model
+    {
+        public string UserName { get; set; }
+        public string Password { get; set; }
+    }
+
+    Model model = new Model();
+
+    async Task Authenticate()
+    {
+
+        var userAccount = accSvc.GetByUserName(model.UserName);
+        if (userAccount == null || userAccount.Password != model.Password)
+        {
+            await jsTool.InvokeVoidAsync("alert", "登入失敗，錯誤的帳號或密碼！");
+            return;
+        }
+
+        var customAuthProvider = (CustomAuthenticationStateProvider)authProvider;
+
+        await customAuthProvider.UpdateAuthenticationState(new UserSession
+            {
+                UserName = userAccount.UserName,
+                Role = userAccount.Role
+            }
+        );
+        navSvc.NavigateTo("/", true);
+    }
+}
