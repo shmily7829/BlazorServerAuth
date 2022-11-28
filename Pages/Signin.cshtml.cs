@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
 
-namespace BlazorServerAuthenticationAndAuthorzation.Authentication;
+namespace BlazorServerAuth.Authentication;
 
 [AllowAnonymous]
 public class SigninModel : PageModel

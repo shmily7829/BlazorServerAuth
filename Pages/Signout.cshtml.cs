@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace BlazorServerAuthenticationAndAuthorzation.Authentication
+namespace BlazorServerAuth.Authentication
 {
     [Authorize]
   public class SignoutModel : PageModel

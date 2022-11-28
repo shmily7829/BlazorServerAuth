@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using System.Security.Claims;
 
-namespace BlazorServerAuthenticationAndAuthorzation.Authentication
+namespace BlazorServerAuth.Authentication
 {
     /// <summary>
     /// 實作教學

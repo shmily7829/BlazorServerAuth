@@ -1,5 +1,5 @@
-using BlazorServerAuthenticationAndAuthorzation.Authentication;
-using BlazorServerAuthenticationAndAuthorzation.Data;
+using BlazorServerAuth.Authentication;
+using BlazorServerAuth.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;

@@ -9,7 +9,7 @@ using System.Security.Claims;
 using System.Collections.Generic;
 using System.Net;
 
-namespace BlazorServerAuthenticationAndAuthorzation.Authentication
+namespace BlazorServerAuth.Authentication
 {
     public class UserAccountService : IDisposable
     {

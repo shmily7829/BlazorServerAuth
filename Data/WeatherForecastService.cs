@@ -1,4 +1,4 @@
-namespace BlazorServerAuthenticationAndAuthorzation.Data
+namespace BlazorServerAuth.Data
 {
     public class WeatherForecastService
     {
