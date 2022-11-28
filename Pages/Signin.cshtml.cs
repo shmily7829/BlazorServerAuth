@@ -24,7 +24,7 @@ public class SigninModel : PageModel
   /// ¥ÎHTTP GET µn¤J: µù¥U Auth-Cookie
   public async Task<IActionResult> OnGetAsync(string tid)
   {
-    UserAccount? UserAccount = null;
+    AuthUser? UserAccount = null;
     try
     {
       if (String.IsNullOrWhiteSpace(tid))

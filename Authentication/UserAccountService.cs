@@ -13,7 +13,7 @@ namespace BlazorServerAuth.Authentication
 {
     public class UserAccountService : IDisposable
     {
-        private List<UserAccount> _users;
+        private List<AuthUser> _users;
 
         //## resource
         internal record Ticket
@@ -59,16 +59,16 @@ namespace BlazorServerAuth.Authentication
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        public UserAccount? GetByUserName(string username)
+        public AuthUser? GetByUserName(string username)
         {
             return _users.FirstOrDefault(x => x.UserName == username);
         }
 
-        internal UserAccount GetAuthDataFromPool(string userIdentityName)
+        internal AuthUser GetAuthDataFromPool(string userIdentityName)
         {
             lock (_lockObj)
             {
-                var UserAccount = _cache.Get<UserAccount>($"AuthData:{userIdentityName}");
+                var UserAccount = _cache.Get<AuthUser>($"AuthData:{userIdentityName}");
 
                 // 若已過時，則清除
                 if (UserAccount != null && DateTime.UtcNow > UserAccount.ExpiresUtc)
@@ -92,7 +92,7 @@ namespace BlazorServerAuth.Authentication
             }
         }
 
-        internal UserAccount GetCurrentUser()
+        internal AuthUser GetCurrentUser()
         {
             var user = _http.HttpContext.User; // 現在使用者
             if (!user.Identity.IsAuthenticated)
@@ -117,23 +117,23 @@ namespace BlazorServerAuth.Authentication
         /// <summary>
         /// 解開 ClaimsIdentity，解開使用者的識別聲明資訊。
         /// </summary>
-        internal UserAccount UnpackUserClaimsData(System.Security.Principal.IIdentity identity)
+        internal AuthUser UnpackUserClaimsData(System.Security.Principal.IIdentity identity)
         {
             if (!identity.IsAuthenticated)
                 return null;
 
             var claimsIdentity = (System.Security.Claims.ClaimsIdentity)identity;
-            var UserAccountJson = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.UserData)?.Value;
+            var UserAccountJson = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
             if (UserAccountJson == null)
                 throw new UnauthorizedAccessException("授權資料不完整！請重新登入。");
 
-            return JsonSerializer.Deserialize<UserAccount>(UserAccountJson);
+            return JsonSerializer.Deserialize<AuthUser>(UserAccountJson);
         }
 
         /// <summary>
         /// 封裝 ClaimsIdentity: 將使用者的登入資訊包裝成 ClaimsIdentity 以用於 Cookie-Base Auth.。
         /// </summary>
-        internal ClaimsIdentity PackUserClaimsData(UserAccount auth)
+        internal ClaimsIdentity PackUserClaimsData(AuthUser auth)
         {
             // 使用者聲明
             var claims = new List<Claim>
@@ -159,23 +159,22 @@ namespace BlazorServerAuth.Authentication
         /// <summary>
         /// Authenticate & Authorize
         /// </summary>
-        /*
-        public string ValidateUser(LoginArgs ln)
+        public string ValidateUser(LoginArgs login)
         {
             try
             {
-                if (String.IsNullOrWhiteSpace(ln.clientIp))
+                if (String.IsNullOrWhiteSpace(login.clientIp))
                     throw new ApplicationException("登入認證失敗！");
 
-                if (String.IsNullOrWhiteSpace(ln.hostName))
+                if (String.IsNullOrWhiteSpace(login.hostName))
                     throw new ApplicationException("登入認證失敗！");
 
                 //## verify vcode;
-                if (!"123456".Equals(ln.vcode))
+                if (!"123456".Equals(login.vcode))
                     throw new ApplicationException("登入認證失敗！");
 
                 //## 驗證帳號與密碼 並 取得角色
-                AuthUser authUser = AuthModule.GetUserAuthz(ln.clientIp.Trim(), ln.hostName.Trim());
+                AuthUser authUser =
                 if (authUser == null)
                     throw new ApplicationException("登入認證失敗！");
 
@@ -185,7 +184,7 @@ namespace BlazorServerAuth.Authentication
                 authUser.ClientHostName = hostName;
 
                 // 補充時效
-                double expiresMinutes = _config.GetValue<double>("ExpiresMinutes");
+                //double expiresMinutes = _config.GetValue<double>("ExpiresMinutes");
                 authUser.AuthGuid = Guid.NewGuid();
                 authUser.IssuedUtc = DateTimeOffset.UtcNow;
                 authUser.ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(expiresMinutes);
@@ -220,17 +219,15 @@ namespace BlazorServerAuth.Authentication
                 }
 
                 //# success
-                string ticketToken = Utils.JwtHostingEncode<Guid>(ticket.ticketId);
-                _logger.DebugEx($"ValidateUser SUCCESS, userId:{ticket.userId}.");
+                string ticketToken = this.JwtHostingEncode<Guid>(ticket.ticketId);
                 return ticketToken;
             }
             catch (Exception ex)
             {
-                _logger.ErrorEx($"ValidateUser FAIL, clientIp:{ln.clientIp}, hostName:{ln.hostName}", ex);
                 return null;
             }
         }
-        */
+        
 
         /// <summary>
         /// JwtHelper:只能用於短期且同APP內的交換訊息。
@@ -251,7 +248,7 @@ namespace BlazorServerAuth.Authentication
         /// <summary>        
         /// JwtHelper:只能用於短期且同APP內的交換訊息。
         /// </summary>
-        public static string JwtHostingEncode<TObject>(TObject payload)
+        public string JwtHostingEncode<TObject>(TObject payload)
         {
             using var sha = new HMACSHA256(Encoding.ASCII.GetBytes(Environment.ProcessPath));
             string envprops = $"{Environment.ProcessId}{Environment.MachineName}{Environment.Version}{Environment.UserName}{Environment.OSVersion}{Environment.UserDomainName}{Environment.ProcessorCount}{DateTime.Today.DayOfYear}0okmNJIx.y(8uhbVGY&";
@@ -264,7 +261,7 @@ namespace BlazorServerAuth.Authentication
             return tokenR;
         }
 
-        public class Model
+        public class LoginArgs
         {
             public string UserName { get; set; }
             public string Password { get; set; }

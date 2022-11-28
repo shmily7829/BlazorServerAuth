@@ -27,8 +27,12 @@
 @code {
     bool f_Authing = false;
 
-    UserAccountService.Model model = new ();
+    UserAccountService.LoginArgs model = new ();
 
+    /// <summary>
+    /// sission 登入驗證
+    /// </summary>
+    /// <returns></returns>
     //async Task Authenticate()
     //{
 
@@ -56,13 +60,13 @@
         f_Authing = true; // 表示執行登入中，可以用來鎖住【登入】按鈕避免亂按。
         StateHasChanged();
 
-        //string ticketToken = await Task.Run(() => accSvc.ValidateUser(model));
-        //if (ticketToken == null)
-        //{
-        //    await jsTool.InvokeVoidAsync("alert","登入認證失敗！");
-        //    f_Authing = false;
-        //    return;
-        //}
+        string ticketToken = await Task.Run(() => accSvc.ValidateUser(model));
+        if (ticketToken == null)
+        {
+            await jsTool.InvokeVoidAsync("alert","登入認證失敗！");
+            f_Authing = false;
+            return;
+        }
 
         // 前端轉址
         //string signinUri = $"Signin?tid={encode(ticketToken)}";
