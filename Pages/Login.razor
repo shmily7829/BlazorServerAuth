@@ -25,33 +25,52 @@
 </div>
 
 @code {
+    bool f_Authing = false;
 
-    class Model
-    {
-        public string UserName { get; set; }
-        public string Password { get; set; }
-    }
+    UserAccountService.Model model = new ();
 
-    Model model = new Model();
+    //async Task Authenticate()
+    //{
+
+    //    var userAccount = accSvc.GetByUserName(model.UserName);
+    //    if (userAccount == null || userAccount.Password != model.Password)
+    //    {
+    //        await jsTool.InvokeVoidAsync("alert", "登入失敗，錯誤的帳號或密碼！");
+    //        return;
+    //    }
+
+    //    var customAuthProvider = (CustomAuthenticationStateProvider)authProvider;
+
+    //    await customAuthProvider.UpdateAuthenticationState(new UserSession
+    //        {
+    //            UserName = userAccount.UserName,
+    //            Role = userAccount.Role
+    //        }
+    //    );
+    //    navSvc.NavigateTo("/", true);
+    //}
 
     async Task Authenticate()
     {
 
-        var userAccount = accSvc.GetByUserName(model.UserName);
-        if (userAccount == null || userAccount.Password != model.Password)
-        {
-            await jsTool.InvokeVoidAsync("alert", "登入失敗，錯誤的帳號或密碼！");
-            return;
-        }
+        f_Authing = true; // 表示執行登入中，可以用來鎖住【登入】按鈕避免亂按。
+        StateHasChanged();
 
-        var customAuthProvider = (CustomAuthenticationStateProvider)authProvider;
+        //string ticketToken = await Task.Run(() => accSvc.ValidateUser(model));
+        //if (ticketToken == null)
+        //{
+        //    await jsTool.InvokeVoidAsync("alert","登入認證失敗！");
+        //    f_Authing = false;
+        //    return;
+        //}
 
-        await customAuthProvider.UpdateAuthenticationState(new UserSession
-            {
-                UserName = userAccount.UserName,
-                Role = userAccount.Role
-            }
-        );
-        navSvc.NavigateTo("/", true);
+        // 前端轉址
+        //string signinUri = $"Signin?tid={encode(ticketToken)}";
+        //navSvc.NavigateTo(signinUri, true);
+    }
+
+    string encode(string param)
+    {
+        return System.Web.HttpUtility.UrlEncode(param);
     }
 }

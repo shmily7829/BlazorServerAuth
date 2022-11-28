@@ -1,5 +1,6 @@
 using BlazorServerAuthenticationAndAuthorzation.Authentication;
 using BlazorServerAuthenticationAndAuthorzation.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
@@ -8,7 +9,20 @@ using Microsoft.AspNetCore.Components.Web;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddAuthenticationCore();
+//builder.Services.AddAuthenticationCore();
+
+/// for BLAZOR COOKIE Auth
+/// ref ¡÷ https://blazorhelpwebsite.com/ViewBlogPost/36
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.CheckConsentNeeded = context => true;
+    options.MinimumSameSitePolicy = SameSiteMode.Strict;
+});
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(cfg =>
+    {
+        cfg.Cookie.Name = ".AuthTest.Cookies"; //default:.AspNetCore.Cookies
+    });
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<ProtectedSessionStorage>();
@@ -28,6 +42,11 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 app.UseRouting();
+
+/// for BLAZOR COOKIE Auth
+app.UseCookiePolicy();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
