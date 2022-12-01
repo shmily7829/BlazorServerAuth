@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using System.Collections.Generic;
 using System.Net;
+using BlazorServerAuth.Pages;
+using System.ComponentModel.DataAnnotations;
+using System.Xml.Linq;
 
 namespace BlazorServerAuth.Authentication
 {
@@ -163,28 +166,35 @@ namespace BlazorServerAuth.Authentication
         {
             try
             {
-                if (String.IsNullOrWhiteSpace(login.clientIp))
+                if (String.IsNullOrWhiteSpace(login.UserName))
                     throw new ApplicationException("登入認證失敗！");
 
-                if (String.IsNullOrWhiteSpace(login.hostName))
+                if (String.IsNullOrWhiteSpace(login.HostName))
                     throw new ApplicationException("登入認證失敗！");
 
-                //## verify vcode;
-                if (!"123456".Equals(login.vcode))
-                    throw new ApplicationException("登入認證失敗！");
+                ////## verify vcode;
+                //if (!"123456".Equals(login.Vcode))
+                //    throw new ApplicationException("登入認證失敗！");
 
-                //## 驗證帳號與密碼 並 取得角色
-                AuthUser authUser =
-                if (authUser == null)
-                    throw new ApplicationException("登入認證失敗！");
+                ////## 驗證帳號與密碼 並 取得角色
+                //AuthUser authUser = AuthModule.GetUserAuthz(login.UserName.Trim(), HostName.Trim());
+                //if (authUser == null)
+                //    throw new ApplicationException("登入認證失敗！");
+
+                AuthUser authUser = new AuthUser
+                {
+                    UserId = "TEST001",
+                    UserName = "泰斯特",
+                    Roles = new[] { "Admin" }
+                };
 
                 // 補充登入來源資訊
-                var (clientIp, hostName) = GetClientHostInfo();
-                authUser.ClientIp = clientIp;
+                var (userName, hostName) = GetClientHostInfo();
+                authUser.ClientIp = userName;
                 authUser.ClientHostName = hostName;
 
                 // 補充時效
-                //double expiresMinutes = _config.GetValue<double>("ExpiresMinutes");
+                double expiresMinutes = 20d;
                 authUser.AuthGuid = Guid.NewGuid();
                 authUser.IssuedUtc = DateTimeOffset.UtcNow;
                 authUser.ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(expiresMinutes);
@@ -202,8 +212,8 @@ namespace BlazorServerAuth.Authentication
                 {
                     ticketId = Guid.NewGuid(),
                     userId = authUser.UserId,
-                    returnUrl = "/mainpage",
-                    expires = DateTime.Now.AddSeconds(5)
+                    returnUrl = "/",
+                    expires = DateTime.Now.AddSeconds(20)
                 };
 
                 lock (_lockObj)
@@ -226,8 +236,39 @@ namespace BlazorServerAuth.Authentication
             {
                 return null;
             }
+
         }
-        
+
+        public (string clientIp, string hostName) GetClientHostInfo()
+        {
+            //## 取登入者來源IP
+            string clientIp = "無法取得來源IP";
+            string hostName = "無法識別或失敗";
+            try
+            {
+                IPAddress remoteIp = _http.HttpContext?.Connection.RemoteIpAddress;
+                if (remoteIp != null)
+                {
+                    clientIp = remoteIp.ToString();
+                    IPHostEntry host = Dns.GetHostEntry(remoteIp);
+                    hostName = host.HostName;
+
+                    ////※ 模擬跑數秒，因為在真實網路環境有時真的跑的有點久。
+                    //System.Threading.SpinWait.SpinUntil(() => false, 5 * 1000); // 等三秒
+
+                    //# 若有多餘的字尾".local" 則移除它。
+                    const string suffix = ".local";
+                    if (hostName.EndsWith(suffix))
+                        hostName = hostName.Substring(0, hostName.Length - suffix.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                // 預防取不到IP/HostName當掉。
+            }
+
+            return (clientIp, hostName);
+        }
 
         /// <summary>
         /// JwtHelper:只能用於短期且同APP內的交換訊息。
@@ -263,9 +304,21 @@ namespace BlazorServerAuth.Authentication
 
         public class LoginArgs
         {
+            /// <summary>
+            /// 帳號
+            /// </summary>
             public string UserName { get; set; }
-            public string Password { get; set; }
-        }
 
+            /// <summary>
+            /// 密碼
+            /// </summary>
+            public string HostName { get; set; }
+            
+            /// <summary>
+            /// 驗證碼
+            /// </summary>
+            public string Vcode { get; set; }
+        }
     }
 }
+

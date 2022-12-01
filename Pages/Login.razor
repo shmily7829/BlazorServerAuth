@@ -16,7 +16,7 @@
         </div>
         <div class="mb-3">
             <label>Password</label>
-            <input @bind="model.Password" class="form-control" placeholder="密碼" />
+            <input @bind="model.HostName" class="form-control" placeholder="密碼" />
         </div>
         <div class="mb-3 d-grid gap-2">
             <button @onclick="Authenticate" class="btn - btn-primary">登入</button>
@@ -69,8 +69,8 @@
         }
 
         // 前端轉址
-        //string signinUri = $"Signin?tid={encode(ticketToken)}";
-        //navSvc.NavigateTo(signinUri, true);
+        string signinUri = $"Signin?tid={encode(ticketToken)}";
+        navSvc.NavigateTo(signinUri, true);
     }
 
     string encode(string param)
